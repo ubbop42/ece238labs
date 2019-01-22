@@ -7,19 +7,24 @@ public class lab1{
          
         System.out.print("enter 0 for mm1 or 1 mm1k:");
         boolean isbounded = scanner.nextInt() == 1;
-    
+        
+        // Observer events = rand(n)
         System.out.print("n?: ");
         double n = scanner.nextDouble();
 
+        // Arrival events = rand(lambda)
         System.out.print("λ?: ");
         double lambda = scanner.nextDouble();
 
+        // Packet length = rand(L)
         System.out.print("L?: ");
         double l = scanner.nextDouble();
 
+        // Service Time = L/C
         System.out.print("C?: ");
         double c = scanner.nextDouble();
 
+        // Simulation length
         System.out.print("tme?: ");
         double t = scanner.nextDouble();
 
