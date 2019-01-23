@@ -5,7 +5,7 @@ public class lab1 {
         final Scanner scanner = new Scanner(System.in);
 
         System.out.print("enter 0 for mm1 or 1 mm1k:");
-        boolean isbounded = false;
+        boolean isbounded = true;
 
         // Observer events = rand(n)
         System.out.print("alpha?: ");
@@ -27,17 +27,19 @@ public class lab1 {
         System.out.print("time?: ");
         double t = 1000;
         System.out.println("");
+
         if (isbounded) {
             System.out.print("k?: ");
             double k = scanner.nextDouble();
-            // simulate mm1k
+            double lambda = 75;
+            System.out.println(simulatemm1k(alpha, lambda, l, c, t, k)[2]);
         } else {
             for (int lambda = 125; lambda <= 475; lambda += 5) {
-                System.out.printf("ρ = %.2f: %.3f\n", lambda * (l / c), simulatemmk(alpha, lambda, l, c, t)[1]);
+                System.out.printf("ρ = %.2f: %.3f\n", lambda * (l / c), simulatemm1(alpha, lambda, l, c, t)[1]);
             }
 
             System.out.println();
-            System.out.printf("ρ = %.2f: %.3f\n", 600 * (l / c), simulatemmk(alpha, 600, l, c, t)[1]);
+            System.out.printf("ρ = %.2f: %.3f\n", 600 * (l / c), simulatemm1(alpha, 600, l, c, t)[1]);
 
         }
 
@@ -58,7 +60,7 @@ public class lab1 {
         // System.out.println(Math.sqrt(stdev / 999));
     }
 
-    public static double[] simulatemmk(double alpha, double lambda, double l, double c, double t) {
+    public static double[] simulatemm1(double alpha, double lambda, double l, double c, double t) {
         LinkedList<Event> eventList = new LinkedList<Event>();
         double qDelay = 0.0;
         double currentTime = 0.0;
@@ -106,6 +108,68 @@ public class lab1 {
         double res[] = new double[2];
         res[0] = avgNumberOfElementsInQ;
         res[1] = idle;
+        return res;
+    }
+
+    public static double[] simulatemm1k(double alpha, double lambda, double l, double c, double t, double k) {
+        LinkedList<Event> eventList = new LinkedList<Event>();
+        double currentTime = 0.0;
+        while (currentTime < t) {
+            double delta = genarateRandom(lambda);
+            currentTime += delta;
+            Event arrival = new Event("Arrival", currentTime);
+            eventList.add(arrival);
+        }
+        currentTime = 0.0;
+        while (currentTime < t) {
+            currentTime += genarateRandom(alpha);
+            Event temp = new Event("Observer", currentTime);
+            eventList.add(temp);
+        }
+
+        Collections.sort(eventList, new timeComp());
+        LinkedList<Double> q = new LinkedList<Double>();
+        double qDelay = 0;
+        double qSum = 0;
+        double dropCount = 0;
+        double observerCount = 0;
+        long idleCount = 0;
+        for (int i = 0;; i++) {
+            Event e = eventList.get(i);
+            if (e == null)
+                break;
+            if (e.type.equals("Arrival")) {
+                if (q.size() > k) {
+                    System.out.println("dropped");
+                    dropCount++;
+                } else {
+                    double serviceTime = genarateRandom(1.0 / l) / c;
+                    q.addFirst(serviceTime);
+                    double departureTime = e.time + serviceTime + qDelay;
+                    qDelay += serviceTime;
+                    Event departure = new Event("Departure", departureTime);
+                    for (int j = i;; j++) {
+                        if (eventList.get(j).time > departureTime) {
+                            eventList.add(j - 1, departure);
+                            break;
+                        }
+                    }
+                }
+            } else if (e.type.equals("Departure")) {
+                qDelay = Math.max(0, qDelay - q.removeLast());
+            } else if (e.type.equals("Observer")) {
+                qSum += q.size();
+                observerCount++;
+                idleCount += q.isEmpty() ? 1 : 0;
+            }
+        }
+        double avgNumberOfElementsInQ = (qSum / observerCount);
+        double idle = (idleCount / observerCount);
+
+        double res[] = new double[3];
+        res[0] = avgNumberOfElementsInQ;
+        res[1] = idle;
+        res[2] = dropCount;
         return res;
     }
 
