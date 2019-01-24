@@ -25,7 +25,7 @@ public class lab1 {
 
         // Simulation length
         System.out.print("time?: ");
-        double t = 1000;
+        double t = 100;
         System.out.println("");
 
         if (isbounded) {
@@ -135,9 +135,9 @@ public class lab1 {
         double observerCount = 0;
         long idleCount = 0;
         for (int i = 0;; i++) {
-            Event e = eventList.get(i);
-            if (e == null)
+            if (i >= eventList.size())
                 break;
+            Event e = eventList.get(i);
             if (e.type.equals("Arrival")) {
                 if (q.size() > k) {
                     System.out.println("dropped");
