@@ -25,7 +25,7 @@ public class lab1 {
 
         // Simulation length
         System.out.print("time?: ");
-        double t = 100;
+        double t = 1000;
         System.out.println("");
 
         if (isbounded) {
@@ -149,6 +149,10 @@ public class lab1 {
                     qDelay += serviceTime;
                     Event departure = new Event("Departure", departureTime);
                     for (int j = i;; j++) {
+                        if (j >= eventList.size()) {
+                            eventList.addLast(departure);
+                            break;
+                        }
                         if (eventList.get(j).time > departureTime) {
                             eventList.add(j - 1, departure);
                             break;
