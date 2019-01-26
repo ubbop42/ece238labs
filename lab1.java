@@ -25,7 +25,7 @@ public class lab1 {
 
         // Simulation length
         System.out.print("time?: ");
-        double t = 1000;
+        double t = 100;
         System.out.println("");
 
         if (isbounded) {
@@ -134,13 +134,10 @@ public class lab1 {
         double dropCount = 0;
         double observerCount = 0;
         long idleCount = 0;
-        for (int i = 0;; i++) {
-            if (i >= eventList.size())
-                break;
+        for (int i = 0; i < eventList.size(); i++) {
             Event e = eventList.get(i);
             if (e.type.equals("Arrival")) {
                 if (q.size() > k) {
-                    System.out.println("dropped");
                     dropCount++;
                 } else {
                     double serviceTime = genarateRandom(1.0 / l) / c;
@@ -148,16 +145,16 @@ public class lab1 {
                     double departureTime = e.time + serviceTime + qDelay;
                     qDelay += serviceTime;
                     Event departure = new Event("Departure", departureTime);
-                    for (int j = i;; j++) {
-                        if (j >= eventList.size()) {
-                            eventList.addLast(departure);
-                            break;
-                        }
+                    boolean inserted = false;
+                    for (int j = i; j < eventList.size(); j++) {
                         if (eventList.get(j).time > departureTime) {
-                            eventList.add(j - 1, departure);
+                            eventList.add(j, departure);
+                            inserted = true;
                             break;
                         }
                     }
+                    if (!inserted)
+                        eventList.addLast(departure);
                 }
             } else if (e.type.equals("Departure")) {
                 qDelay = Math.max(0, qDelay - q.removeLast());
