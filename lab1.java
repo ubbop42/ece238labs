@@ -25,7 +25,7 @@ public class lab1 {
 
         // Simulation length
         System.out.print("time?: ");
-        double t = 100;
+        double t = 1000;
         System.out.println("");
 
         if (isbounded) {
@@ -112,7 +112,8 @@ public class lab1 {
     }
 
     public static double[] simulatemm1k(double alpha, double lambda, double l, double c, double t, double k) {
-        LinkedList<Event> eventList = new LinkedList<Event>();
+        // LinkedList<Event> eventList = new LinkedList<Event>();
+        PriorityQueue<Event> eventList = new PriorityQueue<Event>(10000000, new timeComp());
         double currentTime = 0.0;
         while (currentTime < t) {
             double delta = genarateRandom(lambda);
@@ -127,15 +128,16 @@ public class lab1 {
             eventList.add(temp);
         }
 
-        Collections.sort(eventList, new timeComp());
+        // Collections.sort(eventList, new timeComp());
         LinkedList<Double> q = new LinkedList<Double>();
         double qDelay = 0;
         double qSum = 0;
         double dropCount = 0;
         double observerCount = 0;
         long idleCount = 0;
-        for (int i = 0; i < eventList.size(); i++) {
-            Event e = eventList.get(i);
+        int size = eventList.size();
+        for (int i = 0; i < size; i++) {
+            Event e = eventList.remove();
             if (e.type.equals("Arrival")) {
                 if (q.size() > k) {
                     dropCount++;
@@ -145,16 +147,17 @@ public class lab1 {
                     double departureTime = e.time + serviceTime + qDelay;
                     qDelay += serviceTime;
                     Event departure = new Event("Departure", departureTime);
-                    boolean inserted = false;
-                    for (int j = i; j < eventList.size(); j++) {
-                        if (eventList.get(j).time > departureTime) {
-                            eventList.add(j, departure);
-                            inserted = true;
-                            break;
-                        }
-                    }
-                    if (!inserted)
-                        eventList.addLast(departure);
+                    eventList.add(departure);
+                    // boolean inserted = false;
+                    // for (int j = i; j < eventList.size(); j++) {
+                    // if (eventList.get(j).time > departureTime) {
+                    // eventList.add(j, departure);
+                    // inserted = true;
+                    // break;
+                    // }
+                    // }
+                    // if (!inserted)
+                    // eventList.addLast(departure);
                 }
             } else if (e.type.equals("Departure")) {
                 qDelay = Math.max(0, qDelay - q.removeLast());
