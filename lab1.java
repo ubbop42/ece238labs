@@ -136,8 +136,10 @@ public class lab1 {
         double observerCount = 0;
         long idleCount = 0;
         int size = eventList.size();
-        for (int i = 0; i < size; i++) {
-            Event e = eventList.remove();
+        for (int i = 0; i < (size * 2); i++) {
+            Event e = eventList.poll();
+            if (e == null)
+                break;
             if (e.type.equals("Arrival")) {
                 if (q.size() > k) {
                     dropCount++;
