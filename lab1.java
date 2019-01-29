@@ -135,8 +135,7 @@ public class lab1 {
         double dropCount = 0;
         double observerCount = 0;
         long idleCount = 0;
-        int size = eventList.size();
-        for (int i = 0; i < (size * 2); i++) {
+        for (int i = 0; ; i++) {
             Event e = eventList.poll();
             if (e == null)
                 break;
