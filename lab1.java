@@ -102,8 +102,6 @@ public class lab1 {
         }
         double avgNumberOfElementsInQ = (qSum / observerCount);
         double idle = (idleCount / observerCount);
-        // System.out.println("avg = " + avgNumberOfElementsInQ);
-        // System.out.println("idle = " + idle * 100 + "%");
 
         double res[] = new double[2];
         res[0] = avgNumberOfElementsInQ;
@@ -112,7 +110,6 @@ public class lab1 {
     }
 
     public static double[] simulatemm1k(double alpha, double lambda, double l, double c, double t, double k) {
-        // LinkedList<Event> eventList = new LinkedList<Event>();
         PriorityQueue<Event> eventList = new PriorityQueue<Event>(10000000, new timeComp());
         double currentTime = 0.0;
         while (currentTime < t) {
@@ -128,14 +125,13 @@ public class lab1 {
             eventList.add(temp);
         }
 
-        // Collections.sort(eventList, new timeComp());
         LinkedList<Double> q = new LinkedList<Double>();
         double qDelay = 0;
         double qSum = 0;
         double dropCount = 0;
         double observerCount = 0;
         long idleCount = 0;
-        for (int i = 0; ; i++) {
+        for (int i = 0;; i++) {
             Event e = eventList.poll();
             if (e == null)
                 break;
@@ -149,16 +145,6 @@ public class lab1 {
                     qDelay += serviceTime;
                     Event departure = new Event("Departure", departureTime);
                     eventList.add(departure);
-                    // boolean inserted = false;
-                    // for (int j = i; j < eventList.size(); j++) {
-                    // if (eventList.get(j).time > departureTime) {
-                    // eventList.add(j, departure);
-                    // inserted = true;
-                    // break;
-                    // }
-                    // }
-                    // if (!inserted)
-                    // eventList.addLast(departure);
                 }
             } else if (e.type.equals("Departure")) {
                 qDelay = Math.max(0, qDelay - q.removeLast());
