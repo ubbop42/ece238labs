@@ -4,24 +4,14 @@ public class lab1 {
     public static void main(String[] args) {
         final Scanner scanner = new Scanner(System.in);
 
-        System.out.print("enter 0 for mm1 or 1 mm1k:");
-        boolean isbounded = true;
-
-        // Observer events = rand(n)
+        boolean isbounded = false;
         double alpha = 350;
-
-        // Arrival events = rand(lambda)
-
-        // Packet length = rand(L)
         double l = 2000;
-
-        // Service Time = L/C
         double c = 1000000;
-
-        // Simulation length
         double t = 1000;
 
         if (isbounded) {
+			
 			System.out.printf("k, p, E[n]\n");
 			int k[] = { 10, 25, 50 };
 			double[] res = new double[2];
@@ -31,8 +21,8 @@ public class lab1 {
 	                System.out.printf("%d, %.1f, %.3f\n", k[i], lambda * (l / c), res[0]);
 	            }
 	        }
-		     System.out.printf("\nk, p, P_loss\n");
 
+		    System.out.printf("\nk, p, P_loss\n");
 			for( int i = 0; i < 3; i++){
 		        for (int lambda = 200; lambda < 1000; lambda += 50){
 	             	res = simulatemm1k(alpha, lambda, l, c, t, k[i]);
