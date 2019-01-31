@@ -128,10 +128,8 @@ public class lab1 {
 
         double dropCount = 0; // Count number of dropped packets
         double queueDelay = 0.0; // Time to process the current elements in queue
-        double delta = 0.0; // Delay between arrival events
         double serviceTime = 0.0; // Service delay for a given packet size
         double departureTime = 0.0; // Timestamp for the departure event
-        double queueSize = 0; // Number of elements in the queue
         double queueSum = 0; // Sum of number of elements in the queue
 
         while (true) {
