@@ -4,7 +4,8 @@ public class lab1 {
     public static void main(String[] args) {
         final Scanner scanner = new Scanner(System.in);
 
-        boolean isbounded = false;
+		System.out.printf("Press 0 for M/M/1, Press 1 for M/M/1/k\n");
+        boolean isbounded = scanner.nextDouble() > 0;
         double alpha = 350;
         double l = 2000;
         double c = 1000000;
@@ -12,36 +13,19 @@ public class lab1 {
 
         if (isbounded) {
 			
-			System.out.printf("k, p, E[n]\n");
-			int k[] = { 10, 25, 50 };
-			double[] res = new double[2];
-			for( int i = 0; i < 3; i++){
-	            for (int lambda = 250; lambda <= 750; lambda += 50){
-	            	res = simulatemm1k(alpha, lambda, l, c, t, k[i]);
-	                System.out.printf("%d, %.1f, %.3f\n", k[i], lambda * (l / c), res[0]);
-	            }
-	        }
-
-		    System.out.printf("\nk, p, P_loss\n");
-			for( int i = 0; i < 3; i++){
-		        for (int lambda = 200; lambda < 1000; lambda += 50){
-	             	res = simulatemm1k(alpha, lambda, l, c, t, k[i]);
-		            System.out.printf("%d, %.1f, %.3f\n", k[i], lambda * (l / c), res[1]);
-		        }
-		        for (int lambda = 1000; lambda < 2500; lambda += 100){
-	             	res = simulatemm1k(alpha, lambda, l, c, t, k[i]);
-		            System.out.printf("%d, %.1f, %.3f\n", k[i], lambda * (l / c), res[1]);
-		        }
-		        for (int lambda = 2500; lambda <= 5000; lambda += 200){
-	             	res = simulatemm1k(alpha, lambda, l, c, t, k[i]);
-		            System.out.printf("%d, %.1f, %.3f\n", k[i], lambda * (l / c), res[1]);
-		        }
-			}
+			System.out.printf("p, k10_E[n], k10_P_loss, k25_E[n], k25_P_loss, k50_E[n], k50_P_loss\n");
+            for (int lambda = 250; lambda <= 750; lambda += 50){
+            	double[] k10_res = simulatemm1k(alpha, lambda, l, c, t, 10);
+            	double[] k25_res = simulatemm1k(alpha, lambda, l, c, t, 25);
+            	double[] k50_res = simulatemm1k(alpha, lambda, l, c, t, 50);
+                System.out.printf("%.1f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", lambda * (l / c), k10_res[0], k10_res[1], k25_res[0], k25_res[1], k50_res[0], k50_res[1]);
+            }
 
         } else {
+
             double[] res = new double[2];
             System.out.printf("ρ, idle, qCount\n");
-            for (int lambda = 125; lambda <= 475; lambda += 5){
+            for (int lambda = 125; lambda <= 475; lambda += 50){
             	res = simulatemm1(alpha, lambda, l, c, t);
                 System.out.printf("%.2f, %.3f, %.3f\n", lambda * (l / c), res[1], res[0]);
             }
@@ -54,52 +38,62 @@ public class lab1 {
     }
 
     public static double[] simulatemm1(double alpha, double lambda, double l, double c, double t) {
-        LinkedList<Event> eventList = new LinkedList<Event>();
-        double qDelay = 0.0;
-        double currentTime = 0.0;
-        while (currentTime < t) {
-            double delta = genarateRandom(lambda);
+        // List containing arrival, departure and observer events
+        LinkedList<Event> eventList = new LinkedList<Event>(); 
+        double queueDelay = 0.0;		// Time to process the current elements in queue
+        double currentTime = 0.0;		// Current timestamp of simulation
+        double delta = 0.0;				// Delay between arrival events
+        double serviceTime = 0.0;		// Service delay for a given packet size
+        double departureTime = 0.0;		// Timestamp for the departure event
+        double observerCount = 0;		// Number of observer events
+
+        // ++++++++++ EVENT GENERATION ++++++++++++++
+
+        while (currentTime < t) { // Populate event list with arrival and departure events
+        	// Perform Timing caculations for arrival/departure events
+            delta = generateRandom(lambda);
             currentTime += delta;
-            double serviceTime = genarateRandom(1.0 / l) / c;
-            qDelay = Math.max(0, qDelay - delta);
-            double departureTime = currentTime + serviceTime + qDelay;
-            qDelay += serviceTime;
+            serviceTime = generateRandom(1.0 / l) / c;
+            queueDelay = Math.max(0, queueDelay - delta);
+            departureTime = currentTime + serviceTime + queueDelay;
+            queueDelay += serviceTime;
+
+            // Add events with their corresponding timestamp
             Event arrival = new Event("Arrival", currentTime);
             eventList.add(arrival);
             Event departure = new Event("Departure", departureTime);
             eventList.add(departure);
         }
         currentTime = 0.0;
-        while (currentTime < t) {
-            currentTime += genarateRandom(alpha);
+        while (currentTime < t) { //Populate event list with observer events
+            currentTime += generateRandom(alpha);
             Event temp = new Event("Observer", currentTime);
             eventList.add(temp);
+            observerCount++;
         }
 
-        Collections.sort(eventList, new timeComp());
+        Collections.sort(eventList, new timeComp()); // Sort list on timestamps
 
-        double q = 0;
-        double qSum = 0;
-        double observerCount = 0;
-        long idleCount = 0;
+        // ++++++++++ SIMULATION ++++++++++++++
+
+        double queueSize = 0;		// Number of elements in the queue
+        double queueSum = 0;		// Sum of number of elements in the queue
+        long idleCount = 0;			// Track number of times queue is idle (queueSize = 0)
         for (Event e : eventList) {
             if (e.type.equals("Arrival")) {
-                q++;
+                queueSize++;
             } else if (e.type.equals("Departure")) {
-                q--;
+                queueSize--;
             } else if (e.type.equals("Observer")) {
-                qSum += q;
-                observerCount++;
-                idleCount += (q == 0) ? 1 : 0;
+                queueSum += queueSize;
+                idleCount += (queueSize == 0) ? 1 : 0; //increment if idle
             }
         }
-        double avgNumberOfElementsInQ = (qSum / observerCount);
-        double idle = (idleCount / observerCount);
 
-        double res[] = new double[2];
-        res[0] = avgNumberOfElementsInQ;
-        res[1] = idle;
-        return res;
+        double avgQueueSize = (queueSum / observerCount);	// Average number of elements in the queue, E[n]
+        double idleFraction = (idleCount / observerCount);	// Fraction of time the queue is idle
+
+        return new double[] { avgQueueSize, idleFraction };
     }
 
     public static double[] simulatemm1k(double alpha, double lambda, double l, double c, double t, double k) {
@@ -107,59 +101,58 @@ public class lab1 {
         PriorityQueue<Event> eventList = new PriorityQueue<Event>(10000000, new timeComp());
         double currentTime = 0.0;
         int totalPacketCount = 0;
+
         while (currentTime < t) {
-            double delta = genarateRandom(lambda);
-            currentTime += delta;
-            Event arrival = new Event("Arrival", currentTime);
-            eventList.add(arrival);
+            currentTime += generateRandom(lambda);
+            eventList.add(new Event("Arrival", currentTime));
             totalPacketCount++;
         }
         currentTime = 0.0;
         while (currentTime < t) {
-            currentTime += genarateRandom(alpha);
+            currentTime += generateRandom(alpha);
             Event temp = new Event("Observer", currentTime);
             eventList.add(temp);
         }
 
-        LinkedList<Double> q = new LinkedList<Double>();
+        LinkedList<Double> queue = new LinkedList<Double>();
         double qDelay = 0;
         double qSum = 0;
         double dropCount = 0;
         double observerCount = 0;
         long idleCount = 0;
+        double serviceTime = 0.0;
+        double departureTime = 0.0;
+
         for (int i = 0; ; i++) {
             Event e = eventList.poll();
             if (e == null)
                 break;
             if (e.type.equals("Arrival")) {
-                if (q.size() > k) {
+                if (queue.size() > k) {
                     dropCount++;
                 } else {
-                    double serviceTime = genarateRandom(1.0 / l) / c;
-                    q.addFirst(serviceTime);
-                    double departureTime = e.time + serviceTime + qDelay;
+                    serviceTime = generateRandom(1.0 / l) / c;
+                    queue.addFirst(serviceTime);
+                    departureTime = e.time + serviceTime + qDelay;
                     qDelay += serviceTime;
-                    Event departure = new Event("Departure", departureTime);
-                    eventList.add(departure);
+                    eventList.add(new Event("Departure", departureTime));
                 }
             } else if (e.type.equals("Departure")) {
-                qDelay = Math.max(0, qDelay - q.removeLast());
+                qDelay = Math.max(0, qDelay - queue.removeLast());
             } else if (e.type.equals("Observer")) {
-                qSum += q.size();
+                qSum += queue.size();
                 observerCount++;
-                idleCount += q.isEmpty() ? 1 : 0;
+                idleCount += queue.isEmpty() ? 1 : 0;
             }
         }
-        double avgNumberOfElementsInQ = (qSum / observerCount);
-        double idle = (idleCount / observerCount);
+        double avgQueueSize = (qSum / observerCount);
+        double packetLoss = (dropCount/totalPacketCount)*100;
 
-        double res[] = new double[2];
-        res[0] = avgNumberOfElementsInQ;
-        res[1] = (dropCount/totalPacketCount)*100;
+        double res[] = new double[] { avgQueueSize, packetLoss };
         return res;
     }
 
-    public static double genarateRandom(double lambda) {
+    public static double generateRandom(double lambda) {
         return -Math.log(1.0 - Math.random()) / lambda;
     }
 
