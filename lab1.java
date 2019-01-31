@@ -4,8 +4,9 @@ public class lab1 {
     public static void main(String[] args) {
         final Scanner scanner = new Scanner(System.in);
 
-		System.out.printf("Press 0 for M/M/1, Press 1 for M/M/1/k\n");
-        boolean isbounded = scanner.nextDouble() > 0;
+		// System.out.printf("Press 0 for M/M/1, Press 1 for M/M/1/k\n");
+        // boolean isbounded = scanner.nextDouble() > 0;
+        boolean isbounded = true;
         double alpha = 350;
         double l = 2000;
         double c = 1000000;
@@ -97,10 +98,11 @@ public class lab1 {
     }
 
     public static double[] simulatemm1k(double alpha, double lambda, double l, double c, double t, double k) {
-        // LinkedList<Event> eventList = new LinkedList<Event>();
-        PriorityQueue<Event> eventList = new PriorityQueue<Event>(10000000, new timeComp());
-        double currentTime = 0.0;
-        int totalPacketCount = 0;
+        // List containing arrival, departure and observer events
+        PriorityQueue<Event> eventList = new PriorityQueue<Event>(1000000, new timeComp());
+        double currentTime = 0.0;		// Current timestamp of simulation
+        int totalPacketCount = 0;		// Number of arrival events
+        double observerCount = 0;		// Number of observer events
 
         while (currentTime < t) {
             currentTime += generateRandom(lambda);
@@ -112,44 +114,46 @@ public class lab1 {
             currentTime += generateRandom(alpha);
             Event temp = new Event("Observer", currentTime);
             eventList.add(temp);
+            observerCount++;
+
         }
 
+        // Packet queue
         LinkedList<Double> queue = new LinkedList<Double>();
-        double qDelay = 0;
-        double qSum = 0;
-        double dropCount = 0;
-        double observerCount = 0;
-        long idleCount = 0;
-        double serviceTime = 0.0;
-        double departureTime = 0.0;
+        
+        double dropCount = 0; 			// Count number of dropped packets
+        double queueDelay = 0.0;		// Time to process the current elements in queue
+        double delta = 0.0;				// Delay between arrival events
+        double serviceTime = 0.0;		// Service delay for a given packet size
+        double departureTime = 0.0;		// Timestamp for the departure event
+        double queueSize = 0;			// Number of elements in the queue
+        double queueSum = 0;			// Sum of number of elements in the queue
 
-        for (int i = 0; ; i++) {
+        while(true) {
             Event e = eventList.poll();
-            if (e == null)
+            if (e == null) 	// break when the list is empty
                 break;
             if (e.type.equals("Arrival")) {
-                if (queue.size() > k) {
-                    dropCount++;
+                if (queue.size() > k) { // if the queue is full
+                    dropCount++;		// the packet is dropped
                 } else {
                     serviceTime = generateRandom(1.0 / l) / c;
                     queue.addFirst(serviceTime);
-                    departureTime = e.time + serviceTime + qDelay;
-                    qDelay += serviceTime;
+                    departureTime = e.time + serviceTime + queueDelay;
+                    queueDelay += serviceTime;
                     eventList.add(new Event("Departure", departureTime));
                 }
             } else if (e.type.equals("Departure")) {
-                qDelay = Math.max(0, qDelay - queue.removeLast());
+                queueDelay = Math.max(0, queueDelay - queue.removeLast());
             } else if (e.type.equals("Observer")) {
-                qSum += queue.size();
-                observerCount++;
-                idleCount += queue.isEmpty() ? 1 : 0;
+                queueSum += queue.size();
             }
         }
-        double avgQueueSize = (qSum / observerCount);
+        double avgQueueSize = (queueSum / observerCount);
         double packetLoss = (dropCount/totalPacketCount)*100;
 
-        double res[] = new double[] { avgQueueSize, packetLoss };
-        return res;
+        return new double[] { avgQueueSize, packetLoss };
+
     }
 
     public static double generateRandom(double lambda) {
