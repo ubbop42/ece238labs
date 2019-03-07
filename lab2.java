@@ -30,32 +30,81 @@ public class lab2 {
         }
 
         int[] collisiionCounters = new int[n];
-        int[] transmittedCounters = new int[n];
+        int success = 0;
+        int dropped = 0;
+        int collided = 0;
         double tProp = d/s;
         double tTrans = l/r;
         double bitTime = 1/r;
         double currentTime = 0.0;
         while(true){
             int currNode = getNextNode(nodes,n);
+            if(currNode == -1) break;
+            boolean collissionDetected = false;
             currentTime = nodes.get(currNode).get(0);
             for(int i = 0; i < n ;i++){
+                if(nodes.get(i).isEmpty()) continue;
                 int delta = Math.abs(i-currNode);
+                if(delta == 0) continue; 
                 double dangertime = currentTime + delta*(tProp);
-                for (int j = 0;;j++) {
-                    if(nodes.get(i).get(j)<dangertime){
-                        collisiionCounters[i]++;
-                        if(collisiionCounters[i]<10){
-                            double backOffTime = 512 * bitTime + generateRandomBackoff(Math.pow(2,collisiionCounters[i])-1);
-                            nodes.get(i).set(j, (nodes.get(i).get(j)+ backOffTime));
+                if(nodes.get(i).get(0) < dangertime){
+                    collissionDetected = true;
+                    collisiionCounters[i]++;
+                    double backOffTime = 512 * bitTime + generateRandomBackoff(Math.pow(2,collisiionCounters[i])-1);
+                    if(collisiionCounters[i]<10){
+                        nodes.get(i).set(0, (currentTime + backOffTime));
+                        for (int j = 1; j < nodes.get(i).size() ;j++) {
+                            if(nodes.get(i).get(j) < dangertime){
+                                nodes.get(i).set(j, (currentTime + backOffTime));
+                            }
+                            else{
+                                break;
+                            }
+                        }
+                    } else {
+                        collisiionCounters[i] = 0;
+                        nodes.get(i).remove(0);
+                        dropped++;
+                    }
+                }
+                double busyTime = currentTime + delta*(tProp) + tTrans;
+                for (int j = 0; j < nodes.get(i).size() ;j++) {
+                    if(nodes.get(i).get(j) < busyTime){
+                        nodes.get(i).set(j, busyTime);
+                    }
+                    else{
+                        break;
+                    }
+                }
+            }
+            if(collissionDetected){
+                collided++;
+                collisiionCounters[currNode]++;
+                double backOffTime = 512 * bitTime + generateRandomBackoff(Math.pow(2,collisiionCounters[currNode])-1);
+                if(collisiionCounters[currNode]<10){
+                    nodes.get(currNode).set(0, (currentTime + backOffTime));
+                    for (int j = 1; j < nodes.get(currNode).size() ;j++) {
+                        if(nodes.get(currNode).get(j) < currentTime + backOffTime){
+                            nodes.get(currNode).set(j, (currentTime + backOffTime));
+                        }
+                        else{
+                            break;
                         }
                     }
-                    else break;
+                } else {
+                    collisiionCounters[currNode] = 0;
+                    nodes.get(currNode).remove(0);
+                    dropped++;
                 }
-            } 
-
+            } else{
+                collisiionCounters[currNode] = 0;
+                nodes.get(currNode).remove(0);
+                success++;
+            }
         }
-
-
+        System.out.println(dropped);
+        System.out.println(collided);
+        System.out.println(success);
     }
 
     // public static double[] nonPerstsitance(double a, double t, double r, double l, double d , double s) {
@@ -72,16 +121,16 @@ public class lab2 {
     }
 
     public static int getNextNode(ArrayList<ArrayList<Double>> nodes, int n) {  
-        double min = nodes.get(0).get(0);
-        int index = 0;
-        for(int i = 1; i < n; i++){
+        double min = Double.MAX_VALUE;
+        int index = -1;
+        for(int i = 0; i < n; i++){
+            if(nodes.get(i).isEmpty()) continue;
             double time = nodes.get(i).get(0);
                 if(time < min){
                     min = time;
                     index = i;
                 }
         }
-        System.out.println(index);
         return index;
     }
 }
