@@ -6,8 +6,8 @@ import java.util.*;
 public class lab2 {
     public static void main(String[] args) throws FileNotFoundException {
         double t = 1000; //time
-        int n = 40; //nodes
-        double a = 10; //rate
+        int n = 60; //nodes
+        double a = 5; //rate
         double r = 1000000; //speedlan
         double l = 1500; //length
         double d = 10; //distance
@@ -34,20 +34,16 @@ public class lab2 {
         int[] collisiionCounters = new int[n];
         int success = 0;
         int dropped = 0;
-        int collided = 0;
-        int fuck = 0;
+        int transmitted = 0;
         double tProp = d/s;
         double tTrans = l/r;
         double bitTime = (512.0)/r;
-        System.out.println("tProp: "+tProp);
-        System.out.println("tTrans: "+tTrans);
-        System.out.println("bitTime: "+bitTime);
         double currentTime = 0.0;
         while(true){
             int currNode = getNextNode(nodes,n);
             if(currNode == -1) break;
             boolean collissionDetected = false;
-            if(nodes.get(currNode).get(0)<currentTime)fuck++;
+            transmitted++;
             currentTime = nodes.get(currNode).get(0);
             for(int i = 0; i < n ;i++){
                 if(nodes.get(i).isEmpty()) continue;
@@ -57,14 +53,14 @@ public class lab2 {
                 if(nodes.get(i).get(0) < dangertime){
                     collissionDetected = true;
                     collisiionCounters[i]++;
+                    transmitted++;
                     double backOffTime = bitTime * generateRandomBackoff(Math.pow(2,collisiionCounters[i])-1);
                     if(collisiionCounters[i]<=10){
                         nodes.get(i).set(0, (currentTime + backOffTime));
-                        collided++;
                         for (int j = 1; j < nodes.get(i).size() ;j++) {
                             if(nodes.get(i).get(j) < dangertime){
                                 nodes.get(i).set(j, (currentTime + backOffTime));
-                                collided++;
+                                transmitted++;
                             }
                             else{
                                 break;
@@ -81,11 +77,9 @@ public class lab2 {
                 collisiionCounters[currNode]++;
                 double backOffTime = bitTime + generateRandomBackoff(Math.pow(2,collisiionCounters[currNode])-1);
                 if(collisiionCounters[currNode]<10){
-                    collided++;
                     nodes.get(currNode).set(0, (currentTime + backOffTime));
                     for (int j = 1; j < nodes.get(currNode).size() ;j++) {
                         if(nodes.get(currNode).get(j) < currentTime + backOffTime){
-                            collided++;
                             nodes.get(currNode).set(j, (currentTime + backOffTime));
                         }
                         else{
@@ -105,12 +99,10 @@ public class lab2 {
                 for(int i = 0; i < n ;i++){
                     if(nodes.get(i).isEmpty()) continue;
                     int delta = Math.abs(i-currNode);
-                    if(delta == 0) continue; 
                     double busyTime = currentTime + delta*(tProp) + tTrans;
                     for (int j = 0; j < nodes.get(i).size() ;j++) {
                         if(nodes.get(i).get(j) < busyTime){
                             nodes.get(i).set(j, busyTime);
-                            // collided++;
                         }
                         else{
                             break;
@@ -119,12 +111,11 @@ public class lab2 {
                 }
             }
         }
-        System.out.println("fuck: "+fuck);
         System.out.println(dropped);
-        System.out.println(collided);
+        System.out.println(transmitted);
         System.out.println(success);
         System.out.println(total);
-        double efficiency = ((double)success/((double)success+(double)collided));
+        double efficiency = ((double)success/((double)transmitted));
         System.out.println(efficiency);
     }
 
