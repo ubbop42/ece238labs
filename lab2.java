@@ -7,7 +7,7 @@ public class lab2 {
     public static void main(String[] args) throws FileNotFoundException {
         double t = 1000; //time
         int n = 60; //nodes
-        double a = 5; //rate
+        double a = 12; //rate
         double r = 1000000; //speedlan
         double l = 1500; //length
         double d = 10; //distance
@@ -58,7 +58,7 @@ public class lab2 {
                     if(collisiionCounters[i]<=10){
                         nodes.get(i).set(0, (currentTime + backOffTime));
                         for (int j = 1; j < nodes.get(i).size() ;j++) {
-                            if(nodes.get(i).get(j) < dangertime){
+                            if(nodes.get(i).get(j) < (currentTime + backOffTime)){
                                 nodes.get(i).set(j, (currentTime + backOffTime));
                                 transmitted++;
                             }
