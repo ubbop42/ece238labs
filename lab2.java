@@ -6,8 +6,8 @@ import java.util.*;
 public class lab2 {
     public static void main(String[] args) throws FileNotFoundException {
         double t = 1000; //time
-        int n = 20; //nodes
-        double a = 10; //rate
+        int n = 100; //nodes
+        double a = 20; //rate
         double r = 1000000; //speedlan
         double l = 1500; //length
         double d = 10; //distance
@@ -18,6 +18,7 @@ public class lab2 {
 
     public static void perstsitance(double a, double t, double r, double l, double d , double s,int n) {
         ArrayList<ArrayList<Double>> nodes = new ArrayList<ArrayList<Double>>(n);
+        int total = 0;
 
         for(int i = 0; i < n; i++){
             ArrayList<Double> node = new ArrayList<Double>();
@@ -25,6 +26,7 @@ public class lab2 {
             while (currentTime < t) {
                 currentTime += generateRandomAlpha(a);
                 node.add(currentTime);
+                total++;
             }
             nodes.add(node);
         }
@@ -53,9 +55,11 @@ public class lab2 {
                     double backOffTime = 512 * bitTime + generateRandomBackoff(Math.pow(2,collisiionCounters[i])-1);
                     if(collisiionCounters[i]<10){
                         nodes.get(i).set(0, (currentTime + backOffTime));
+                        collided++;
                         for (int j = 1; j < nodes.get(i).size() ;j++) {
                             if(nodes.get(i).get(j) < dangertime){
                                 nodes.get(i).set(j, (currentTime + backOffTime));
+                                collided++;
                             }
                             else{
                                 break;
@@ -67,24 +71,16 @@ public class lab2 {
                         dropped++;
                     }
                 }
-                double busyTime = currentTime + delta*(tProp) + tTrans;
-                for (int j = 0; j < nodes.get(i).size() ;j++) {
-                    if(nodes.get(i).get(j) < busyTime){
-                        nodes.get(i).set(j, busyTime);
-                    }
-                    else{
-                        break;
-                    }
-                }
             }
             if(collissionDetected){
-                collided++;
                 collisiionCounters[currNode]++;
                 double backOffTime = 512 * bitTime + generateRandomBackoff(Math.pow(2,collisiionCounters[currNode])-1);
                 if(collisiionCounters[currNode]<10){
+                    collided++;
                     nodes.get(currNode).set(0, (currentTime + backOffTime));
                     for (int j = 1; j < nodes.get(currNode).size() ;j++) {
                         if(nodes.get(currNode).get(j) < currentTime + backOffTime){
+                            collided++;
                             nodes.get(currNode).set(j, (currentTime + backOffTime));
                         }
                         else{
@@ -100,11 +96,30 @@ public class lab2 {
                 collisiionCounters[currNode] = 0;
                 nodes.get(currNode).remove(0);
                 success++;
+
+                for(int i = 0; i < n ;i++){
+                    if(nodes.get(i).isEmpty()) continue;
+                    int delta = Math.abs(i-currNode);
+                    if(delta == 0) continue; 
+                    double busyTime = currentTime + delta*(tProp) + tTrans;
+                    for (int j = 0; j < nodes.get(i).size() ;j++) {
+                        if(nodes.get(i).get(j) < busyTime){
+                            nodes.get(i).set(j, busyTime);
+                            collided++;
+                        }
+                        else{
+                            break;
+                        }
+                    }
+                }
             }
         }
         System.out.println(dropped);
         System.out.println(collided);
         System.out.println(success);
+        System.out.println(total);
+        double efficiency = ((double)success/((double)success+(double)collided));
+        System.out.println(efficiency);
     }
 
     // public static double[] nonPerstsitance(double a, double t, double r, double l, double d , double s) {
