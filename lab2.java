@@ -6,7 +6,7 @@ import java.util.*;
 public class lab2 {
     public static void main(String[] args) throws FileNotFoundException {
         double t = 1000; //time
-        int n = 60; //nodes
+        int n = 100; //nodes
         double a = 12; //rate
         double r = 1000000; //speedlan
         double l = 1500; //length
@@ -51,11 +51,11 @@ public class lab2 {
                 if(delta == 0) continue; 
                 double dangertime = currentTime + delta*(tProp);
                 if(nodes.get(i).get(0) < dangertime){
-                    collissionDetected = true;
                     collisiionCounters[i]++;
-                    transmitted++;
-                    double backOffTime = bitTime * generateRandomBackoff(Math.pow(2,collisiionCounters[i])-1);
+                    double backOffTime = bitTime * generateRandomBackoff((int)Math.pow(2,collisiionCounters[i]));
                     if(collisiionCounters[i]<=10){
+                        collissionDetected = true;
+                        transmitted++;
                         nodes.get(i).set(0, (currentTime + backOffTime));
                         for (int j = 1; j < nodes.get(i).size() ;j++) {
                             if(nodes.get(i).get(j) < (currentTime + backOffTime)){
@@ -75,7 +75,7 @@ public class lab2 {
             }
             if(collissionDetected){
                 collisiionCounters[currNode]++;
-                double backOffTime = bitTime + generateRandomBackoff(Math.pow(2,collisiionCounters[currNode])-1);
+                double backOffTime = bitTime + generateRandomBackoff((int)Math.pow(2,collisiionCounters[currNode]));
                 if(collisiionCounters[currNode]<10){
                     nodes.get(currNode).set(0, (currentTime + backOffTime));
                     for (int j = 1; j < nodes.get(currNode).size() ;j++) {
@@ -128,9 +128,10 @@ public class lab2 {
         return -Math.log(1.0 - Math.random()) / lambda;
     }
     
-    public static int generateRandomBackoff(double upper) {
-        // System.out.println((int)upper +"*"+(int)(Math.random() * (upper - 0)));
-        return (int)(Math.random() * (upper - 0));
+    public static int generateRandomBackoff(int upper) {
+        Random rand = new Random();
+        int randomNum = rand.nextInt(upper);
+        return randomNum;
     }
 
     public static int getNextNode(ArrayList<ArrayList<Double>> nodes, int n) {  
