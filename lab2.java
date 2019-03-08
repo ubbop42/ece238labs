@@ -7,13 +7,26 @@ public class lab2 {
     public static void main(String[] args) throws FileNotFoundException {
         double t = 1000; //time
         int n = 20; //nodes
-        double a = 12; //rate
+        double a = 7; //rate
         double r = 1000000; //speedlan
         double l = 1500; //length
         double d = 10; //distance
         double s = 200000000; //propspeed
-
-        persistant(a,t,r,l,d,s,n);
+        System.out.println("a=7");
+        for(int i = 1; i<=5;i++){
+            persistant(a,t,r,l,d,s,n*i);
+        }
+        a = 10;
+        System.out.println("a=10");
+        for(int i = 1; i<=5;i++){
+            persistant(a,t,r,l,d,s,n*i);
+        }
+        a = 20;
+        System.out.println("a=20");
+        for(int i = 1; i<=5;i++){
+            persistant(a,t,r,l,d,s,n*i);
+        }
+        
     }
 
     public static void persistant(double a, double t, double r, double l, double d , double s,int n) {
@@ -31,7 +44,6 @@ public class lab2 {
             }
             nodes.add(node);
         }
-
         int[] collisionCounters = new int[n];	// Collision counter for each node
         int successCount = 0;					// Count of successfully transmitted packets
         int droppedCount = 0;					// Count of dropped packets
@@ -93,7 +105,7 @@ public class lab2 {
                     for (int j = 1; j < transmittingNode.size(); j++) {
                         if(transmittingNode.get(j) < delta){
                             transmittingNode.set(j, delta);
-                            transmissionAttempts++;
+                            // transmissionAttempts++;
                         }
                         else{
                             break;
@@ -126,11 +138,13 @@ public class lab2 {
             }
         }
 
-        System.out.printf("Dropped = %d\n", droppedCount);
-        System.out.printf("transmissionAttempts = %d\n", transmissionAttempts);
-        System.out.printf("successCount = %d\n", successCount);
+        // System.out.printf("Dropped = %d\n", droppedCount);
+        // System.out.printf("transmissionAttempts = %d\n", transmissionAttempts);
+        // System.out.printf("successCount = %d\n", successCount);
         double efficiency = ((double)successCount/((double)transmissionAttempts));
+        double throughput = (successCount*1500)/currentTime;
         System.out.println(efficiency);
+        // System.out.println(throughput);
     }
 
     // public static double[] nonPerstsitance(double a, double t, double r, double l, double d , double s) {
