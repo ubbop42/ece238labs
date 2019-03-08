@@ -20,7 +20,7 @@ public class lab2 {
         ArrayList<ArrayList<Double>> nodes = new ArrayList<ArrayList<Double>>(n);
         int total = 0;
 
-        // 
+        //
         for(int i = 0; i < n; i++){
             ArrayList<Double> node = new ArrayList<Double>();
             double currentTime = 0.0;
@@ -33,8 +33,8 @@ public class lab2 {
         }
 
         int[] collisionCounters = new int[n];
-        int success = 0;
-        int dropped = 0;
+        int successCount = 0;
+        int droppedCount = 0;
         int transmitted = 0;
         double tProp = d/s;
         double tTrans = l/r;
@@ -45,7 +45,8 @@ public class lab2 {
             if(currNode == -1) break;
             boolean collisionDetected = false;
             transmitted++;
-            currentTime = nodes.get(currNode).get(0);
+            ArrayList<Double> transmittingNode = nodes.get(currNode);
+            currentTime = transmittingNode.get(0);
 
             for(int i = 0; i < n; i++){
                 ArrayList<Double> currentNode = nodes.get(i);
@@ -75,18 +76,20 @@ public class lab2 {
                     } else {
                         collisionCounters[i] = 0;
                         currentNode.remove(0);
-                        dropped++;
+                        droppedCount++;
                     }
                 }
             }
             if(collisionDetected){
                 collisionCounters[currNode]++;
                 double backOffTime = bitTime * generateRandomBackoff((int)Math.pow(2,collisionCounters[currNode]));
-                if(collisionCounters[currNode]<10){
-                    nodes.get(currNode).set(0, (currentTime + backOffTime));
-                    for (int j = 1; j < nodes.get(currNode).size() ;j++) {
-                        if(nodes.get(currNode).get(j) < currentTime + backOffTime){
-                            nodes.get(currNode).set(j, (currentTime + backOffTime));
+                if(collisionCounters[currNode] < 10){
+                	double delta = currentTime + backOffTime;
+                    transmittingNode.set(0, delta);
+                    for (int j = 1; j < transmittingNode.size(); j++) {
+                        if(transmittingNode.get(j) < delta){
+                            transmittingNode.set(j, delta);
+                            transmitted++;
                         }
                         else{
                             break;
@@ -94,34 +97,36 @@ public class lab2 {
                     }
                 } else {
                     collisionCounters[currNode] = 0;
-                    nodes.get(currNode).remove(0);
-                    dropped++;
+                    transmittingNode.remove(0);
+                    droppedCount++;
                 }
             } else{
                 collisionCounters[currNode] = 0;
-                nodes.get(currNode).remove(0);
-                success++;
+                transmittingNode.remove(0);
+                successCount++;
 
-                for(int i = 0; i < n ;i++){
-                    if(nodes.get(i).isEmpty()) continue;
+                for(int i = 0; i < n ;i++) {
+                	ArrayList<Double> currentNode = nodes.get(i);
+                    if(currentNode.isEmpty()) continue;
                     int delta = Math.abs(i-currNode);
                     double busyTime = currentTime + delta*(tProp) + tTrans;
-                    for (int j = 0; j < nodes.get(i).size() ;j++) {
-                        if(nodes.get(i).get(j) < busyTime){
-                            nodes.get(i).set(j, busyTime);
+                    for (int j = 0; j < currentNode.size(); j++) {
+                        if(currentNode.get(j) < busyTime){
+                            currentNode.set(j, busyTime);
                         }
-                        else{
+                        else {
                             break;
                         }
                     }
                 }
             }
         }
-        System.out.println(dropped);
-        System.out.println(transmitted);
-        System.out.println(success);
-        System.out.println(total);
-        double efficiency = ((double)success/((double)transmitted));
+
+        System.out.printf("Dropped = %d\n", droppedCount);
+        System.out.printf("transmitted = %d\n", transmitted);
+        System.out.printf("successCount = %d\n", successCount);
+        System.out.printf("total = %d\n", total);
+        double efficiency = ((double)successCount/((double)transmitted));
         System.out.println(efficiency);
     }
 
