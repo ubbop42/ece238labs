@@ -15,8 +15,10 @@ public class lab2 {
 
         System.out.printf("\nPersistant:\n");
         persistant(a,t,r,l,d,s,n);
-        System.out.printf("\n\nNon Persistant:\n");
+        System.out.printf("\nNon Persistant:\n");
         nonPersistant(a,t,r,l,d,s,n);
+        System.out.printf("\n");
+
     }
 
     public static void persistant(double a, double t, double r, double l, double d , double s,int n) {
@@ -241,23 +243,28 @@ public class lab2 {
                     if(currentNode.isEmpty()) continue;
                     int delta = Math.abs(i-currNode);
                     double busyTime = currentTime + delta*(tProp) + tTrans;
-                    for (int j = 0; j < currentNode.size(); j++) {
+                    
+                    double newDeparture = 0.0;
+					if(currentNode.get(0) < busyTime){
+	                    collisionCounterSensing[currNode]++;
+	                	if(collisionCounterSensing[currNode] < 10){
+	        				double backOffTime = bitTime * generateRandomBackoff(collisionCounterSensing[currNode]); // set backoff
+	                		newDeparture = currentNode.get(0) + backOffTime;
+	                    	currentNode.set(0, newDeparture);
+	                	}
+	                	else
+	                	{
+	                		collisionCounterSensing[currNode] = 0;
+	            			currentNode.remove(0);
+	            			droppedCount++;
+	                	}
+	                }
+
+                    for (int j = 1; j < currentNode.size(); j++) {
                     	// if node senses line is busy, delay transmission
-                        if(currentNode.get(j) < busyTime){
-                            collisionCounterSensing[currNode]++;
-                        	if(collisionCounterSensing[currNode] < 10){
-                				double backOffTime = bitTime * generateRandomBackoff(collisionCounterSensing[currNode]); // set backoff
-                        		double newDeparture = currentNode.get(j) + backOffTime;
-                            	currentNode.set(j, newDeparture);
-                        	}
-                        	else
-                        	{
-                        		collisionCounterSensing[currNode] = 0;
-                    			currentNode.remove(0);
-                    			droppedCount++;
-                        	}
-                        }
-                        else {
+                        if(currentNode.get(j) < newDeparture){
+                        	currentNode.set(j, newDeparture); 
+                        } else {
                             break;
                         }
                     }
