@@ -17,69 +17,73 @@ public class lab2 {
     }
 
     public static void persistant(double a, double t, double r, double l, double d , double s,int n) {
-        ArrayList<ArrayList<Double>> nodes = new ArrayList<ArrayList<Double>>(n);
-        int total = 0;
+        
+        // List of nodes, where each node is a queue of packets
+        ArrayList<ArrayList<Double>> nodes = new ArrayList<ArrayList<Double>>(n); 
 
-        //
+        // For each node, generate arrival packets
         for(int i = 0; i < n; i++){
             ArrayList<Double> node = new ArrayList<Double>();
             double currentTime = 0.0;
             while (currentTime < t) {
                 currentTime += generateRandomAlpha(a);
                 node.add(currentTime);
-                total++;
             }
             nodes.add(node);
         }
 
-        int[] collisionCounters = new int[n];
-        int successCount = 0;
-        int droppedCount = 0;
-        int transmitted = 0;
-        double tProp = d/s;
-        double tTrans = l/r;
-        double bitTime = (512.0)/r;
-        double currentTime = 0.0;
+        int[] collisionCounters = new int[n];	// Collision counter for each node
+        int successCount = 0;					// Count of successfully transmitted packets
+        int droppedCount = 0;					// Count of dropped packets
+        int transmissionAttempts = 0;			// count of attemped transmissions
+        double tProp = d/s;						// Propegation delay between two adjacent nodes
+        double tTrans = l/r;					// Transmission delay for a packet
+        double bitTime = (512.0)/r;				// bit time
+        double currentTime = 0.0;				// current simulation time
         while(true){
-            int currNode = getNextNode(nodes,n);
+            int currNode = getNextNode(nodes,n); 
             if(currNode == -1) break;
             boolean collisionDetected = false;
-            transmitted++;
-            ArrayList<Double> transmittingNode = nodes.get(currNode);
-            currentTime = transmittingNode.get(0);
+            transmissionAttempts++;
+            ArrayList<Double> transmittingNode = nodes.get(currNode); // Node sending a packet
+            currentTime = transmittingNode.get(0);	// timestamp of next packet
 
+            // Loop through nodes to detect collisions
             for(int i = 0; i < n; i++){
                 ArrayList<Double> currentNode = nodes.get(i);
-                if(currentNode.isEmpty()) continue;
-                int delta = Math.abs(i-currNode);
-                if(delta == 0) continue; 
+                if(i == currNode || currentNode.isEmpty()) continue;
+                int delta = Math.abs(i-currNode); // distance between transmitting node and current node
                 double dangertime = currentTime + delta*(tProp);
 
-                // Something
+                // Check for collision
                 if(currentNode.get(0) < dangertime){
                     collisionCounters[i]++;
                     double backOffTime = bitTime * generateRandomBackoff((int)Math.pow(2,collisionCounters[i]));
-                    //if collision count exceeds limit
+                    
+                    //Check if collision count exceeds limit
                     if(collisionCounters[i]<=10){
                         collisionDetected = true;
-                        transmitted++;
+                        transmissionAttempts++;
                         currentNode.set(0, (currentTime + backOffTime));
+                        
+                        //
                         for (int j = 1; j < currentNode.size(); j++) {
                             if(currentNode.get(j) < (currentTime + backOffTime)){
                                 currentNode.set(j, (currentTime + backOffTime));
-                                transmitted++;
                             }
                             else{
                                 break;
                             }
                         }
                     } else {
+                    	// Collision count exceeds limit; drop packet and reset
                         collisionCounters[i] = 0;
                         currentNode.remove(0);
                         droppedCount++;
                     }
                 }
             }
+
             if(collisionDetected){
                 collisionCounters[currNode]++;
                 double backOffTime = bitTime * generateRandomBackoff((int)Math.pow(2,collisionCounters[currNode]));
@@ -89,7 +93,7 @@ public class lab2 {
                     for (int j = 1; j < transmittingNode.size(); j++) {
                         if(transmittingNode.get(j) < delta){
                             transmittingNode.set(j, delta);
-                            transmitted++;
+                            transmissionAttempts++;
                         }
                         else{
                             break;
@@ -123,15 +127,13 @@ public class lab2 {
         }
 
         System.out.printf("Dropped = %d\n", droppedCount);
-        System.out.printf("transmitted = %d\n", transmitted);
+        System.out.printf("transmissionAttempts = %d\n", transmissionAttempts);
         System.out.printf("successCount = %d\n", successCount);
-        System.out.printf("total = %d\n", total);
-        double efficiency = ((double)successCount/((double)transmitted));
+        double efficiency = ((double)successCount/((double)transmissionAttempts));
         System.out.println(efficiency);
     }
 
     // public static double[] nonPerstsitance(double a, double t, double r, double l, double d , double s) {
-    
 
     // }
 
