@@ -6,20 +6,21 @@ import java.util.*;
 public class lab2 {
     public static void main(String[] args) throws FileNotFoundException {
         double t = 1000; //time
-        int n = 100; //nodes
+        int n = 20; //nodes
         double a = 12; //rate
         double r = 1000000; //speedlan
         double l = 1500; //length
         double d = 10; //distance
         double s = 200000000; //propspeed
 
-        perstsitance(a,t,r,l,d,s,n);
+        persistant(a,t,r,l,d,s,n);
     }
 
-    public static void perstsitance(double a, double t, double r, double l, double d , double s,int n) {
+    public static void persistant(double a, double t, double r, double l, double d , double s,int n) {
         ArrayList<ArrayList<Double>> nodes = new ArrayList<ArrayList<Double>>(n);
         int total = 0;
 
+        // 
         for(int i = 0; i < n; i++){
             ArrayList<Double> node = new ArrayList<Double>();
             double currentTime = 0.0;
@@ -31,7 +32,7 @@ public class lab2 {
             nodes.add(node);
         }
 
-        int[] collisiionCounters = new int[n];
+        int[] collisionCounters = new int[n];
         int success = 0;
         int dropped = 0;
         int transmitted = 0;
@@ -42,24 +43,29 @@ public class lab2 {
         while(true){
             int currNode = getNextNode(nodes,n);
             if(currNode == -1) break;
-            boolean collissionDetected = false;
+            boolean collisionDetected = false;
             transmitted++;
             currentTime = nodes.get(currNode).get(0);
-            for(int i = 0; i < n ;i++){
-                if(nodes.get(i).isEmpty()) continue;
+
+            for(int i = 0; i < n; i++){
+                ArrayList<Double> currentNode = nodes.get(i);
+                if(currentNode.isEmpty()) continue;
                 int delta = Math.abs(i-currNode);
                 if(delta == 0) continue; 
                 double dangertime = currentTime + delta*(tProp);
-                if(nodes.get(i).get(0) < dangertime){
-                    collisiionCounters[i]++;
-                    double backOffTime = bitTime * generateRandomBackoff((int)Math.pow(2,collisiionCounters[i]));
-                    if(collisiionCounters[i]<=10){
-                        collissionDetected = true;
+
+                // Something
+                if(currentNode.get(0) < dangertime){
+                    collisionCounters[i]++;
+                    double backOffTime = bitTime * generateRandomBackoff((int)Math.pow(2,collisionCounters[i]));
+                    //if collision count exceeds limit
+                    if(collisionCounters[i]<=10){
+                        collisionDetected = true;
                         transmitted++;
-                        nodes.get(i).set(0, (currentTime + backOffTime));
-                        for (int j = 1; j < nodes.get(i).size() ;j++) {
-                            if(nodes.get(i).get(j) < (currentTime + backOffTime)){
-                                nodes.get(i).set(j, (currentTime + backOffTime));
+                        currentNode.set(0, (currentTime + backOffTime));
+                        for (int j = 1; j < currentNode.size(); j++) {
+                            if(currentNode.get(j) < (currentTime + backOffTime)){
+                                currentNode.set(j, (currentTime + backOffTime));
                                 transmitted++;
                             }
                             else{
@@ -67,16 +73,16 @@ public class lab2 {
                             }
                         }
                     } else {
-                        collisiionCounters[i] = 0;
-                        nodes.get(i).remove(0);
+                        collisionCounters[i] = 0;
+                        currentNode.remove(0);
                         dropped++;
                     }
                 }
             }
-            if(collissionDetected){
-                collisiionCounters[currNode]++;
-                double backOffTime = bitTime + generateRandomBackoff((int)Math.pow(2,collisiionCounters[currNode]));
-                if(collisiionCounters[currNode]<10){
+            if(collisionDetected){
+                collisionCounters[currNode]++;
+                double backOffTime = bitTime * generateRandomBackoff((int)Math.pow(2,collisionCounters[currNode]));
+                if(collisionCounters[currNode]<10){
                     nodes.get(currNode).set(0, (currentTime + backOffTime));
                     for (int j = 1; j < nodes.get(currNode).size() ;j++) {
                         if(nodes.get(currNode).get(j) < currentTime + backOffTime){
@@ -87,12 +93,12 @@ public class lab2 {
                         }
                     }
                 } else {
-                    collisiionCounters[currNode] = 0;
+                    collisionCounters[currNode] = 0;
                     nodes.get(currNode).remove(0);
                     dropped++;
                 }
             } else{
-                collisiionCounters[currNode] = 0;
+                collisionCounters[currNode] = 0;
                 nodes.get(currNode).remove(0);
                 success++;
 
