@@ -3,9 +3,9 @@ import java.util.*;
 
 public class lab2 {
     public static void main(String[] args) throws FileNotFoundException {
-        double t = 100; // time
+        double t = 1000; // time
         int n = 20; // nodes
-        double a = 20; // rate
+        double a = 5; // rate
         double r = 1000000; // speedlan
         double l = 1500; // length
         double d = 10; // distance
@@ -69,19 +69,19 @@ public class lab2 {
 
                 // Check for collision
                 if (currentNode.get(0) < dangertime) {
+
                     collisionCounters[i]++;
                     transmissionAttempts++;
                     // Check if collision count exceeds limit
                     if (collisionCounters[i] <= 10) {
+                        colllided++;
                         collisionDetected = true;
                         double backOffTime = bitTime * generateRandomBackoff(collisionCounters[i]);
                         currentNode.set(0, (currentTime + backOffTime));
-                        transmissionAttempts++;
                         // Delay other packets in the queue that arrive during backoff
                         for (int j = 1; j < currentNode.size(); j++) {
                             if (currentNode.get(j) < (currentTime + backOffTime)) {
                                 currentNode.set(j, (currentTime + backOffTime));
-                                // collisionCounters[i]++;
                             } else {
                                 break;
                             }
@@ -97,7 +97,6 @@ public class lab2 {
 
             // Handle collision
             if (collisionDetected) {
-                colllided++;
                 collisionCounters[currNode]++; // increment counter
                 if (collisionCounters[currNode] <= 10) {
                     double backOffTime = bitTime * generateRandomBackoff(collisionCounters[currNode]); // set backoff
