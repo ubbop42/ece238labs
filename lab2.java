@@ -5,25 +5,25 @@ public class lab2 {
     public static void main(String[] args) throws FileNotFoundException {
         double t = 1000; // time
         int n = 20; // nodes
-        double a = 5; // rate
+        double a = 7; // rate
         double r = 1000000; // speedlan
         double l = 1500; // length
         double d = 10; // distance
         double s = 200000000; // propspeed
+        System.out.println("a=7");
+        for (int i = 1; i <= 5; i++) {
+            persistant(a, t, r, l, d, s, n * i);
+        }
+        a = 10;
+        System.out.println("a=10");
+        for (int i = 1; i <= 5; i++) {
+            persistant(a, t, r, l, d, s, n * i);
+        }
+        a = 20;
         System.out.println("a=20");
         for (int i = 1; i <= 5; i++) {
             persistant(a, t, r, l, d, s, n * i);
         }
-        // a = 10;
-        // System.out.println("a=10");
-        // for (int i = 1; i <= 5; i++) {
-        // persistant(a, t, r, l, d, s, n * i);
-        // }
-        // a = 20;
-        // System.out.println("a=20");
-        // for (int i = 1; i <= 5; i++) {
-        // persistant(a, t, r, l, d, s, n * i);
-        // }
 
     }
 
@@ -31,13 +31,14 @@ public class lab2 {
 
         // List of nodes, where each node is a queue of packets
         ArrayList<ArrayList<Double>> nodes = new ArrayList<ArrayList<Double>>(n);
-
+        int total = 0;
         // For each node, generate arrival packets
         for (int i = 0; i < n; i++) {
             ArrayList<Double> node = new ArrayList<Double>();
             double currentTime = 0.0;
             while (currentTime < t) {
                 currentTime += generateRandomAlpha(a);
+                total++;
                 node.add(currentTime);
             }
             nodes.add(node);
@@ -46,6 +47,7 @@ public class lab2 {
         int successCount = 0; // Count of successfully transmitted packets
         int colllided = 0;
         int droppedCount = 0; // Count of dropped packets
+        int delayed = 0; // Count of dropped packets
         int transmissionAttempts = 0; // count of attemped transmissions
         double tProp = d / s; // Propegation delay between two adjacent nodes
         double tTrans = l / r; // Transmission delay for a packet
@@ -53,12 +55,25 @@ public class lab2 {
         double currentTime = 0.0; // current simulation time
         while (true) {
             int currNode = getNextNode(nodes, n);
-            if (currNode == -1)
+            if (currNode == -1) {
+                System.out.println(currentTime);
                 break;
+            }
             boolean collisionDetected = false;
             transmissionAttempts++;
             ArrayList<Double> transmittingNode = nodes.get(currNode); // Node sending a packet
             currentTime = transmittingNode.get(0); // timestamp of next packet
+            // if (currentTime > t) {
+            // System.out.println("**" + currentTime);
+            // break;
+            // }
+            // if (currentTime > t) {
+            // for (int i = 0; i < n; i++) {
+            // System.out.println(nodes.get(i).size());
+            // }
+            // break;
+            // }
+
             // Loop through nodes to detect collisions
             for (int i = 0; i < n; i++) {
                 ArrayList<Double> currentNode = nodes.get(i);
@@ -82,6 +97,7 @@ public class lab2 {
                         for (int j = 1; j < currentNode.size(); j++) {
                             if (currentNode.get(j) < (currentTime + backOffTime)) {
                                 currentNode.set(j, (currentTime + backOffTime));
+                                delayed++;
                             } else {
                                 break;
                             }
@@ -106,6 +122,7 @@ public class lab2 {
                     for (int j = 1; j < transmittingNode.size(); j++) {
                         if (transmittingNode.get(j) < waitTime) {
                             transmittingNode.set(j, waitTime);
+                            delayed++;
                             // collisionCounters[currNode]++;
                         } else {
                             break;
@@ -126,14 +143,27 @@ public class lab2 {
                     ArrayList<Double> currentNode = nodes.get(i);
                     if (currentNode.isEmpty())
                         continue;
-                    int delta = Math.abs(i - currNode);
-                    double busyTime = currentTime + delta * (tProp) + tTrans;
-                    for (int j = 0; j < currentNode.size(); j++) {
-                        // if node senses line is busy, delay transmission
-                        if (currentNode.get(j) < busyTime) {
-                            currentNode.set(j, busyTime);
-                        } else {
-                            break;
+                    if (i == currNode) {
+                        double busyTime = currentTime + tTrans;
+                        while (true) {
+                            if (currentNode.isEmpty())
+                                break;
+                            if (currentNode.get(0) < busyTime) {
+                                currentNode.remove(0);
+                            } else {
+                                break;
+                            }
+                        }
+                    } else {
+                        int delta = Math.abs(i - currNode);
+                        double busyTime = currentTime + delta * (tProp) + tTrans;
+                        for (int j = 0; j < currentNode.size(); j++) {
+                            // if node senses line is busy, delay transmission
+                            if (currentNode.get(j) < busyTime) {
+                                currentNode.set(j, busyTime);
+                            } else {
+                                break;
+                            }
                         }
                     }
                 }
@@ -144,6 +174,7 @@ public class lab2 {
         System.out.printf("transmissionAttempts = %d\n", transmissionAttempts);
         System.out.printf("successCount = %d\n", successCount);
         System.out.printf("collided = %d\n", colllided);
+        System.out.printf("delayed = %d\n", delayed);
         double efficiency = ((double) successCount / ((double) transmissionAttempts));
         double throughput = (successCount * 1500) / currentTime;
         System.out.println(efficiency);
@@ -295,7 +326,7 @@ public class lab2 {
     public static int generateRandomBackoff(int count) {
         int upper = (int) Math.pow(2, count);
         Random rand = new Random();
-        int randomNum = rand.nextInt(upper);
+        int randomNum = rand.nextInt(upper - 1);
         return randomNum;
     }
 
