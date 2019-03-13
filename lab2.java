@@ -75,7 +75,6 @@ public class lab2 {
         while (true) {
             int currNode = getNextNode(nodes, n);
             if (currNode == -1) {
-                System.out.println(currentTime);
                 break;
             }
             boolean collisionDetected = false;
@@ -302,13 +301,11 @@ public class lab2 {
                         int delta = Math.abs(i - currNode);
                         double busyTime = currentTime + delta * (tProp) + tTrans;
                         if (currentNode.get(0) < busyTime) {
-                            // System.out.println("**");
                             busyCounters[i]++; // increment counter
                             double backOffTime = bitTime * generateRandomBackoff(busyCounters[i]); // set backoff
                             double waitTime = currentTime + backOffTime;
                             while (busyCounters[i] <= 10 && waitTime < busyTime) {
                                 busyCounters[i]++; // increment counter
-                                // System.out.println(busyCounters[i]);
                                 backOffTime = bitTime * generateRandomBackoff(busyCounters[i]); // set backoff
                                 waitTime = waitTime + backOffTime;
                             }
