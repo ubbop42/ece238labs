@@ -10,35 +10,35 @@ public class lab2 {
         double l = 1500; // length
         double d = 10; // distance
         double s = 200000000; // propspeed
-        // System.out.println("a=7 p");
-        // for (int i = 1; i <= 5; i++) {
-        // System.out.println("n= " + n * i);
-        // persistant(a, t, r, l, d, s, n * i);
-        // }
-        // a = 10;
-        // System.out.println("a=10 p");
-        // for (int i = 1; i <= 5; i++) {
-        // System.out.println("n= " + n * i);
-        // persistant(a, t, r, l, d, s, n * i);
-        // }
-        // a = 20;
-        // System.out.println("a=20 p");
-        // for (int i = 1; i <= 5; i++) {
-        // System.out.println("n= " + n * i);
-        // persistant(a, t, r, l, d, s, n * i);
-        // }
-        // a = 7;
-        // System.out.println("a=7 np");
-        // for (int i = 1; i <= 5; i++) {
-        // System.out.println("n= " + n * i);
-        // nonpersistant(a, t, r, l, d, s, n * i);
-        // }
-        // a = 10;
-        // System.out.println("a=10 np");
-        // for (int i = 1; i <= 5; i++) {
-        // System.out.println("n= " + n * i);
-        // nonpersistant(a, t, r, l, d, s, n * i);
-        // }
+        System.out.println("a=7 p");
+        for (int i = 1; i <= 5; i++) {
+            System.out.println("n= " + n * i);
+            persistant(a, t, r, l, d, s, n * i);
+        }
+        a = 10;
+        System.out.println("a=10 p");
+        for (int i = 1; i <= 5; i++) {
+            System.out.println("n= " + n * i);
+            persistant(a, t, r, l, d, s, n * i);
+        }
+        a = 20;
+        System.out.println("a=20 p");
+        for (int i = 1; i <= 5; i++) {
+            System.out.println("n= " + n * i);
+            persistant(a, t, r, l, d, s, n * i);
+        }
+        a = 7;
+        System.out.println("a=7 np");
+        for (int i = 1; i <= 5; i++) {
+            System.out.println("n= " + n * i);
+            nonpersistant(a, t, r, l, d, s, n * i);
+        }
+        a = 10;
+        System.out.println("a=10 np");
+        for (int i = 1; i <= 5; i++) {
+            System.out.println("n= " + n * i);
+            nonpersistant(a, t, r, l, d, s, n * i);
+        }
         a = 20;
         System.out.println("a=20 np");
         for (int i = 1; i <= 5; i++) {
