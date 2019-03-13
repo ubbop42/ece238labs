@@ -278,7 +278,6 @@ public class lab2 {
                 }
             } else {
                 collisionCounters[currNode] = 0;
-                // busyCounters[currNode] = 0;
                 transmittingNode.remove(0);
                 successCount++;
 
