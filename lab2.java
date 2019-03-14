@@ -10,37 +10,37 @@ public class lab2 {
         double l = 1500; // length
         double d = 10; // distance
         double s = 200000000; // propspeed
-        System.out.println("a=7 p");
+        System.out.println("a=7 persitent");
         for (int i = 1; i <= 5; i++) {
             System.out.println("n= " + n * i);
             persistant(a, t, r, l, d, s, n * i);
         }
         a = 10;
-        System.out.println("a=10 p");
+        System.out.println("a=10 persitent");
         for (int i = 1; i <= 5; i++) {
             System.out.println("n= " + n * i);
             persistant(a, t, r, l, d, s, n * i);
         }
         a = 20;
-        System.out.println("a=20 p");
+        System.out.println("a=20 persitent");
         for (int i = 1; i <= 5; i++) {
             System.out.println("n= " + n * i);
             persistant(a, t, r, l, d, s, n * i);
         }
         a = 7;
-        System.out.println("a=7 np");
+        System.out.println("a=7 non - persitent");
         for (int i = 1; i <= 5; i++) {
             System.out.println("n= " + n * i);
             nonpersistant(a, t, r, l, d, s, n * i);
         }
         a = 10;
-        System.out.println("a=10 np");
+        System.out.println("a=10 non - persitent");
         for (int i = 1; i <= 5; i++) {
             System.out.println("n= " + n * i);
             nonpersistant(a, t, r, l, d, s, n * i);
         }
         a = 20;
-        System.out.println("a=20 np");
+        System.out.println("a=20 non - persitent");
         for (int i = 1; i <= 5; i++) {
             System.out.println("n= " + n * i);
             nonpersistant(a, t, r, l, d, s, n * i);
@@ -52,39 +52,36 @@ public class lab2 {
 
         // List of nodes, where each node is a queue of packets
         ArrayList<ArrayList<Double>> nodes = new ArrayList<ArrayList<Double>>(n);
-        int total = 0;
         // For each node, generate arrival packets
         for (int i = 0; i < n; i++) {
             ArrayList<Double> node = new ArrayList<Double>();
             double currentTime = 0.0;
             while (currentTime < t) {
                 currentTime += generateRandomAlpha(a);
-                total++;
                 node.add(currentTime);
             }
             nodes.add(node);
         }
         int[] collisionCounters = new int[n]; // Collision counter for each node
         int successCount = 0; // Count of successfully transmitted packets
-        int droppedCount = 0;
+        int droppedCount = 0; // count of dropped packets
         int transmissionAttempts = 0; // count of attemped transmissions
         double tProp = d / s; // Propegation delay between two adjacent nodes
         double tTrans = l / r; // Transmission delay for a packet
-        double bitTime = (512.0) / r; // bit time
+        double bitTime = (512.0) / r; // 512 bit time
         double currentTime = 0.0; // current simulation time
         while (true) {
-            int currNode = getNextNode(nodes, n);
-            if (currNode == -1) {
+            int currNode = getNextNode(nodes, n); // method returns the index of the next packet to be serviced
+            if (currNode == -1) { // break if all nodes are empty
                 break;
             }
             boolean collisionDetected = false;
-            transmissionAttempts++;
+            transmissionAttempts++; // the node transmits the packet
             ArrayList<Double> transmittingNode = nodes.get(currNode); // Node sending a packet
             currentTime = transmittingNode.get(0); // timestamp of next packet
-            if (currentTime > t) {
+            if (currentTime > t) { // break if simulation time is exceeded
                 break;
             }
-
             // Loop through nodes to detect collisions
             for (int i = 0; i < n; i++) {
                 ArrayList<Double> currentNode = nodes.get(i);
@@ -97,9 +94,9 @@ public class lab2 {
                 if (currentNode.get(0) <= dangertime) {
 
                     collisionCounters[i]++;
-                    transmissionAttempts++;
+                    transmissionAttempts++; // All nodes part of the collission, attempted a transmission.
                     // Check if collision count exceeds limit
-                    if (collisionCounters[i] <= 10) {
+                    if (collisionCounters[i] <= 10) { // if not, make the node wait.
                         collisionDetected = true;
                         double backOffTime = bitTime * generateRandomBackoff(collisionCounters[i]);
                         currentNode.set(0, (currentTime + backOffTime));
@@ -112,7 +109,7 @@ public class lab2 {
                             }
                         }
                     } else {
-                        // Collision count exceeds limit; drop packet and reset
+                        // Collision count exceeds limit; drop packet and reset counter
                         collisionCounters[i] = 0;
                         currentNode.remove(0);
                         droppedCount++;
@@ -120,9 +117,10 @@ public class lab2 {
                 }
             }
 
-            // Handle collision
+            // Handle collision for transmitting node.
             if (collisionDetected) {
                 collisionCounters[currNode]++; // increment counter
+                // Check if collision count exceeds limit, if not, make the node wait.
                 if (collisionCounters[currNode] <= 10) {
                     double backOffTime = bitTime * generateRandomBackoff(collisionCounters[currNode]); // set backoff
                     double waitTime = currentTime + backOffTime;
@@ -141,7 +139,8 @@ public class lab2 {
                     transmittingNode.remove(0);
                     droppedCount++;
                 }
-            } else {
+            } else { // no collision is detected, transmit the packet, reset counter
+                     // and sense busbusy for other nodes.
                 collisionCounters[currNode] = 0;
                 transmittingNode.remove(0);
                 successCount++;
@@ -151,17 +150,18 @@ public class lab2 {
                     if (currentNode.isEmpty())
                         continue;
                     if (i == currNode) {
+                        // A node cant recieve nodes while transmitting,this will prevent the packets
+                        // from getting delayed beyond the simulation time. They are ignored.
                         double busyTime = currentTime + tTrans;
-                        while (true) {
-                            if (currentNode.isEmpty())
-                                break;
-                            if (currentNode.get(0) == currentTime) {
+                        while (!currentNode.isEmpty()) {
+                            if (currentNode.get(0) < busyTime) {
                                 currentNode.remove(0);
                             } else {
                                 break;
                             }
                         }
                     } else {
+                        // make other nodes wait when they sense bus busy.
                         int delta = Math.abs(i - currNode);
                         double busyTime = currentTime + delta * (tProp) + tTrans;
                         for (int j = 0; j < currentNode.size(); j++) {
@@ -200,25 +200,25 @@ public class lab2 {
         int[] collisionCounters = new int[n]; // Collision counter for each node
         int[] busyCounters = new int[n]; // Collision counter for each node
         int successCount = 0; // Count of successfully transmitted packets
-        int droppedCount = 0;
+        int droppedCount = 0; // count of dropped packets
         int transmissionAttempts = 0; // count of attemped transmissions
         double tProp = d / s; // Propegation delay between two adjacent nodes
         double tTrans = l / r; // Transmission delay for a packet
-        double bitTime = (512.0) / r; // bit time
+        double bitTime = (512.0) / r; // 512 bit time
         double currentTime = 0.0; // current simulation time
         while (true) {
-            int currNode = getNextNode(nodes, n);
-            if (currNode == -1) {
+            int currNode = getNextNode(nodes, n);// method returns the index of the next packet to be serviced
+            if (currNode == -1) { // break if all nodes are empty
                 break;
             }
             boolean collisionDetected = false;
-            transmissionAttempts++;
-            busyCounters[currNode] = 0;
+            transmissionAttempts++; // the node transmits the packet
             ArrayList<Double> transmittingNode = nodes.get(currNode); // Node sending a packet
             currentTime = transmittingNode.get(0); // timestamp of next packet
-            if (currentTime > t) {
+            if (currentTime > t) { // break if simulation time is exceeded
                 break;
             }
+            busyCounters[currNode] = 0; // reset busy counter for transmitting node, beacuse it has sensed idle.
             // Loop through nodes to detect collisions
             for (int i = 0; i < n; i++) {
                 ArrayList<Double> currentNode = nodes.get(i);
@@ -287,27 +287,28 @@ public class lab2 {
                         continue;
                     if (i == currNode) {
                         double busyTime = currentTime + tTrans;
-                        while (true) {
-                            if (currentNode.isEmpty())
-                                break;
-                            if (currentNode.get(0) == currentTime) {
+                        while (!currentNode.isEmpty()) {
+                            if (currentNode.get(0) < busyTime) { // ignore packets recieved while transmitting
                                 currentNode.remove(0);
                             } else {
                                 break;
                             }
                         }
-                    } else {
+                    } else { // non - persistent logic for sensing bus busy
                         int delta = Math.abs(i - currNode);
                         double busyTime = currentTime + delta * (tProp) + tTrans;
-                        if (currentNode.get(0) < busyTime) {
-                            busyCounters[i]++; // increment counter
+                        if (currentNode.get(0) < busyTime) { // if a node senses bus busy
+                            busyCounters[i]++; // increment busy counter
                             double backOffTime = bitTime * generateRandomBackoff(busyCounters[i]); // set backoff
                             double waitTime = currentTime + backOffTime;
+                            // wait according to bus busy backoof till counter > 10
+                            // or the bus is no longer busy.
                             while (busyCounters[i] <= 10 && waitTime < busyTime) {
                                 busyCounters[i]++; // increment counter
                                 backOffTime = bitTime * generateRandomBackoff(busyCounters[i]); // set backoff
                                 waitTime = waitTime + backOffTime;
                             }
+                            // if the bus is sensed idle after backoff, make the node wait untill then.
                             if (waitTime >= busyTime) {
                                 currentNode.set(0, waitTime);
                                 // Delay other packets in the queue that arrive during backoff
@@ -318,11 +319,10 @@ public class lab2 {
                                         break;
                                     }
                                 }
-                            } else {
+                            } else { // if not, attempt transmission and drop the packets.
                                 busyCounters[i] = 0;
-                                while (true) {
-                                    if (currentNode.isEmpty())
-                                        break;
+                                transmissionAttempts++;
+                                while (!currentNode.isEmpty()) {
                                     if (currentNode.get(0) < busyTime) {
                                         currentNode.remove(0);
                                     } else {
