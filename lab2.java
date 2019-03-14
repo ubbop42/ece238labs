@@ -155,7 +155,7 @@ public class lab2 {
                         while (true) {
                             if (currentNode.isEmpty())
                                 break;
-                            if (currentNode.get(0) < busyTime) {
+                            if (currentNode.get(0) == currentTime) {
                                 currentNode.remove(0);
                             } else {
                                 break;
@@ -290,7 +290,7 @@ public class lab2 {
                         while (true) {
                             if (currentNode.isEmpty())
                                 break;
-                            if (currentNode.get(0) < busyTime) {
+                            if (currentNode.get(0) == currentTime) {
                                 currentNode.remove(0);
                             } else {
                                 break;
